@@ -16,19 +16,23 @@
 
 package dag
 
-import (
-	"github.com/sencha-dev/powkit/internal/common"
-)
-
 const (
-	mixBytes  = 128 // Width of mix
-	hashBytes = 64  // Hash length in bytes
-	hashWords = 16  // Number of 32 bit ints in a hash
+	hashBytes = 64 // Hash length in bytes
+	hashWords = 16 // Number of 32 bit ints in a hash
 )
 
 type LookupTable struct {
 	maxEpoch uint64
 	table    []uint64
+}
+
+func NewLookupTable(table []uint64, maxEpoch uint64) *LookupTable {
+	lookupTable := &LookupTable{
+		maxEpoch: maxEpoch,
+		table:    table,
+	}
+
+	return lookupTable
 }
 
 type Config struct {
@@ -47,6 +51,7 @@ type Config struct {
 	CacheSizes   *LookupTable
 
 	// algorithm variables
+	MixBytes        uint64
 	DatasetParents  uint32
 	EpochLength     uint64
 	SeedEpochLength uint64 // ETC uses a different seed epoch length
@@ -61,183 +66,3 @@ type Config struct {
 	L1CacheSize     uint64
 	L1CacheNumItems uint
 }
-
-var (
-	EthereumCfg = &Config{
-		Name:       "ETH",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  256,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled: false,
-	}
-
-	EthereumClassicCfg = &Config{
-		Name:       "ETC",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  256,
-		EpochLength:     60000,
-		SeedEpochLength: 30000,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled: false,
-	}
-
-	Progpow092Cfg = &Config{
-		Name:       "PROGPOW092",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  256,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
-	}
-
-	Progpow093Cfg = &Config{
-		Name:       "PROGPOW093",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  256,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
-	}
-
-	Progpow094Cfg = &Config{
-		Name:       "PROGPOW094",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  512,
-		EpochLength:     30000,
-		SeedEpochLength: 30000,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
-	}
-
-	RavencoinCfg = &Config{
-		Name:       "RVN",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   1 << 30,
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  512,
-		EpochLength:     7500,
-		SeedEpochLength: 7500,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
-	}
-
-	FiroCfg = &Config{
-		Name:       "FIRO",
-		Revision:   23,
-		StorageDir: common.DefaultDir(".powcache"),
-
-		DatasetInitBytes:   (1 << 30) + (1 << 29),
-		DatasetGrowthBytes: 1 << 23,
-		CacheInitBytes:     1 << 24,
-		CacheGrowthBytes:   1 << 17,
-
-		DatasetSizes: nil,
-		CacheSizes:   nil,
-
-		DatasetParents:  512,
-		EpochLength:     1300,
-		SeedEpochLength: 1300,
-
-		CacheRounds:    3,
-		CachesCount:    3,
-		CachesLockMmap: false,
-
-		L1Enabled:       true,
-		L1CacheSize:     4096 * 4,
-		L1CacheNumItems: 4096,
-	}
-)

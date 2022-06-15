@@ -12,28 +12,28 @@ import (
 	"github.com/sencha-dev/powkit/internal/progpow"
 )
 
-func firopow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
-	// temporary initialization state
-	var tempState [25]uint32
+func initialize(hash []byte, nonce uint64) ([25]uint32, uint64) {
+	var seed [25]uint32
 	for i := 0; i < 8; i += 1 {
-		tempState[i] = binary.LittleEndian.Uint32(hash[i*4 : i*4+4])
+		seed[i] = binary.LittleEndian.Uint32(hash[i*4 : i*4+4])
 	}
 
-	tempState[8] = uint32(nonce)
-	tempState[9] = uint32(nonce >> 32)
-	tempState[10] = 0x00000001
-	tempState[18] = 0x80008081
+	seed[8] = uint32(nonce)
+	seed[9] = uint32(nonce >> 32)
+	seed[10] = 0x00000001
+	seed[18] = 0x80008081
 
-	// mixhash
-	crypto.KeccakF800(&tempState)
-	seedHead := uint64(tempState[0]) + (uint64(tempState[1]) << 32)
+	crypto.KeccakF800(&seed)
 
-	mixHash := progpow.HashMix(progpow.Firopow, height, seedHead, lookup, l1)
+	seedHead := uint64(seed[0]) + (uint64(seed[1]) << 32)
 
-	// final hashed digest
+	return seed, seedHead
+}
+
+func finalize(seed [25]uint32, mixHash []byte) []byte {
 	var state [25]uint32
 	for i := 0; i < 8; i++ {
-		state[i] = tempState[i]
+		state[i] = seed[i]
 		state[i+8] = binary.LittleEndian.Uint32(mixHash[i*4 : i*4+4])
 	}
 
@@ -42,7 +42,24 @@ func firopow(hash []byte, height, nonce uint64, lookup func(index uint32) []uint
 
 	crypto.KeccakF800(&state)
 
-	digest := convutil.Uint32ArrayToBytes(state[:8])
+	return convutil.Uint32ArrayToBytes(state[:8], binary.LittleEndian)
+}
+
+func firopow(hash []byte, height, nonce, datasetSize uint64, lookup func(index uint32) []uint32, l1 []uint32) ([]byte, []byte) {
+	cfg := &progpow.Config{
+		PeriodLength:        1,
+		DagLoads:            4,
+		CacheBytes:          16 * 1024,
+		LaneCount:           16,
+		RegisterCount:       32,
+		RoundCount:          64,
+		RoundCacheAccesses:  11,
+		RoundMathOperations: 18,
+	}
+
+	seed, seedHead := initialize(hash, nonce)
+	mixHash := progpow.Hash(cfg, height, seedHead, datasetSize, lookup, l1)
+	digest := finalize(seed, mixHash)
 
 	return mixHash, digest
 }
